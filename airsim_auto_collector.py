@@ -39,15 +39,14 @@ class AutoCollector(object):
 
     def init_instance_ids(self):
         instance_ids = self.config.instance_ids
-        success = self.client.simSetSegmentationObjectID("[\w]*", 255, True)
+        self.client.simSetSegmentationObjectID("[\w]*", 255, True)
 
         for key in instance_ids.keys():
-            success = self.client.simSetSegmentationObjectID(
-                key, instance_ids[key], True)
+            self.client.simSetSegmentationObjectID(key, instance_ids[key], True)
 
         for idx in range(1, self.config.object_types + 1):
             key = "obj{}[\w]*".format(idx)
-            success = self.client.simSetSegmentationObjectID(key, idx, True)
+            self.client.simSetSegmentationObjectID(key, idx, True)
 
     def init_object_combinations(self):
         single_object = list()
@@ -111,7 +110,7 @@ class AutoCollector(object):
                             object_combination_str, obj))
 
             new_pose = copy.deepcopy(self.vehicle_init_pose)
-            new_pose.position.x_val， new_pose.position.y_val = (
+            new_pose.position.x_val, new_pose.position.y_val = (
                 record_pose[0] + self.config.vehicle_position_err * random.uniform(-1, 1),
                 record_pose[1] + self.config.vehicle_position_err * random.uniform(-1, 1)
             )
@@ -151,22 +150,6 @@ class AutoCollector(object):
 
     def is_position_right(self, position):
         return not (np.isnan(position.x_val) or np.isnan(position.x_val) or np.isnan(position.x_val))
-
-    def speed_control(self):
-        self.client.enableApiControl(True)
-        car_controls = airsim.CarControls()
-        car_state = self.client.getCarState()
-        pid_controller = PID(1.2, 0.02, 0.01)
-        pid_controller.clear()
-        pid_controller.set_target(5)
-
-        while True:
-            car_state = self.client.getCarState()
-            pid_controller.update(car_state.speed)
-            car_controls.throttle = pid_controller.get_control_value()
-            self.client.setCarControls(car_controls)
-            time.sleep(0.05)
-            print(car_state)
 
 
 if __name__ == "__main__":
